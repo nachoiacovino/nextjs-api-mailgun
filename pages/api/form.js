@@ -1,9 +1,29 @@
+import Cors from 'cors';
+
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 let API_KEY = process.env.API_KEY;
 let DOMAIN = process.env.DOMAIN;
 let mailgun = require('mailgun-js')({ apiKey: API_KEY, domain: DOMAIN });
 
-export default (req, res) => {
+const cors = Cors({
+  methods: ['POST'],
+});
+
+function runMiddleware(req, res, fn) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+
+      return resolve(result);
+    });
+  });
+}
+
+export default async (req, res) => {
+  await runMiddleware(req, res, cors);
+
   let reqBody;
   try {
     reqBody = req.body && JSON.parse(req.body);
